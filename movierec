@@ -2,10 +2,9 @@ import hashlib
 import csv
 import os
 
-
-
-#global var
+# Global variables
 current_user = None
+
 
 def register_user():
     username = input("ENTER A USERNAME: ")
@@ -23,56 +22,70 @@ def hash_password(password):
     return hashed_password
 
 def login_user():
-    
     global current_user
     username = input("ENTER USERNAME: ")
     password = input("ENTER PASSWORD: ")
     hashed_password = hash_password(password)
-    
+
     with open('users.txt', 'r') as file:
         for line in file:
             stored_username, stored_password = line.strip().split(',')
             if username == stored_username and hashed_password == stored_password:
-                current_user = username 
+                current_user = username
                 print("LOGIN SUCCESSFUL!")
                 return True
-        
+
     print("INVALID, PLEASE TRY AGAIN")
     return False
+
 def movie_search():
     if not current_user:
         print("###### PLEASE LOGIN TO ACCESS THE WATCHLIST ######")
         return
-    with open('movies.csv', 'r') as file:
-        reader = csv.DictReader(file)
-        genres = set()
+    previous_searches =[]
+    while True:
+        with open('movies.csv', 'r') as file:
+            reader = csv.DictReader(file)
+            genres = set()
 
-        for row in reader:
-            genres.add(row['Genre'])
-    print("AVAILABLE GENRES:")            
-    for genre in genres:
-        print(genre)
-    user_pref = input("ENTER YOUR MOVIE PREFERENCE: ")
+            for row in reader:
+                genres.add(row['Genre'])
+        
+        print("AVAILABLE GENRES:")
+        for genre in genres:
+            print(genre)
+        user_pref = input("ENTER YOUR MOVIE PREFERENCE: ")
+        
+        with open('movies.csv', 'r') as file:
+            reader = csv.DictReader(file)
+            matched_movies = []
 
-    with open('movies.csv', 'r') as file:
-        reader = csv.DictReader(file)
-        matched_movies = []
-
-        for row in reader:
-            if user_pref.lower() == row['Genre'].lower():
-                matched_movies.append(row['Title'])
+            for row in reader:
+                if user_pref.lower() == row['Genre'].lower():
+                    matched_movies.append(row['Title'])
+        
         if matched_movies:
-            print("\n MATCHED MOVIES: ")
+            print("\nMATCHED MOVIES:")
             for movie in matched_movies:
                 print(movie)
         else:
             print("NO MOVIES FOUND")
+        
+        choice = input("1. SEARCH AGAIN\n2. BACK TO MAIN MENU\nENTER YOUR CHOICE: ")
+        
+        if choice == "1":
+            continue
+        elif choice == "2":
+            break
+        else:
+            print("INVALID CHOICE, RETURNING TO MAIN MENU.")
+            break
 
 def watchlist():
     if not current_user:
         print("###### PLEASE LOGIN TO ACCESS THE WATCHLIST ######")
         return
-    
+
     user_watchlist = []
 
     while True:
@@ -80,7 +93,8 @@ def watchlist():
         print("1. ADD MOVIE TO WATCHLIST")
         print("2. REMOVE MOVIES FROM WATCHLIST")
         print("3. VIEW WATCHLIST")
-        print("4. BACK TO MAIN MENU")
+        print("4. SAVE WATCHLIST")
+        print("5. BACK TO MAIN MENU")
 
         choice = input("ENTER YOUR CHOICE: ")
 
@@ -93,47 +107,49 @@ def watchlist():
             if movie_title in user_watchlist:
                 user_watchlist.remove(movie_title)
                 print(f"{movie_title} REMOVED FROM WATCHLIST")
-        elif choice == 3:
+        elif choice == "3":
             if user_watchlist:
-                print("MOVIES IN WATCHLIST: ")
-                for movie  in user_watchlist:
-                    print(user_watchlist)
-                else:
-                    print("WATCHLIST IS EMPTY.")
+                print("MOVIES IN WATCHLIST:")
+                for movie in user_watchlist:
+                    print(movie)
+            else:
+                print("WATCHLIST IS EMPTY.")
         elif choice == "4":
+            save_watchlist(user_watchlist)
+        elif choice == "5":
             print("RETURNING TO THE MAIN MENU.")
             break
         else:
             print("INVALID, PLEASE TRY AGAIN")
-    os.system('cls')
+
+def save_watchlist(watchlist):
+    if not watchlist:
+        print("NO MOVIES IN WATCHLIST TO SAVE.")
+        return
+
+    filename = f"{current_user}_watchlist.txt"
+
+    with open(filename, 'w') as file:
+        for movie in watchlist:
+            file.write(movie + '\n')
+
+    print("WATCHLIST SAVED SUCCESSFULLY!")
+
+
 def logout_user():
     global current_user
     current_user = None
     print("LOGOUT SUCCESSFUL!")
 
-     #return username, password
-#def calculate_file_hash(filename):
-#    BLOCK_SIZE = 65536
-#    file_hash = hashlib.sha256()
-#    
-#    with open(filename, 'rb') as file:
-#        fb = file.read(BLOCK_SIZE)
-#        while len(fb) > 0:
-#            file_hash.update(fb)
-#            fb = file.read(BLOCK_SIZE)
-    
-#    return file_hash.hexdigest()
-
 def main_menu():
     print("#### WELCOME TO THE MOVIES WATCHLIST SYSTEM! ####")
     while True:
-        
         print("\n1. REGISTER")
         print("2. LOGIN")
         print("3. LOGOUT")
         print("4. MOVIE SEARCH")
         print("5. WATCHLIST")
-        print("6. EXIT")    
+        print("6. EXIT")
         choice = input("ENTER YOUR CHOICE: ")
 
         if choice == "1":
@@ -156,6 +172,6 @@ def main_menu():
             break
         else:
             print("INVALID, TRY AGAIN")
-        #os.system('cls')
-#main_menu() function to start the program
+
+# Call the main_menu() function to start the program
 main_menu()
