@@ -1,0 +1,118 @@
+import hashlib
+import csv
+#import os
+
+
+
+#global var
+current_user = None
+
+def register_user():
+    username = input("ENTER A USERNAME: ")
+    password = input("ENTER A PASSWORD: ")
+    hashed_password = hash_password(password)
+    return username, hashed_password
+
+def store_user_details(username, hashed_password):
+    with open('users.txt', 'a') as file:
+        file.write(f"{username},{hashed_password}\n")
+
+def hash_password(password):
+    # Hash the password using SHA-256
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    return hashed_password
+
+def login_user():
+    
+    global current_user
+    username = input("ENTER USERNAME: ")
+    password = input("ENTER PASSWORD: ")
+    hashed_password = hash_password(password)
+    
+    with open('users.txt', 'r') as file:
+        for line in file:
+            stored_username, stored_password = line.strip().split(',')
+            if username == stored_username and hashed_password == stored_password:
+                current_user = username 
+                print("LOGIN SUCCESSFUL!")
+                return True
+        
+    print("INVALID, PLEASE TRY AGAIN")
+    return False
+def movie_search():
+    with open('movies.csv', 'r') as file:
+        reader = csv.DictReader(file)
+        genres = set()
+
+        for row in reader:
+            genres.add(row['Genre'])
+    print("AVAILABLE GENRES:")            
+    for genre in genres:
+        print(genre)
+    user_pref = input("ENTER YOUR MOVIE PREFERENCE: ")
+
+    with open('movies.csv', 'r') as file:
+        reader = csv.DictReader(file)
+        matched_movies = []
+
+        for row in reader:
+            if user_pref.lower() == row['Genre'].lower():
+                matched_movies.append(row['Title'])
+        if matched_movies:
+            print("\n MATCHED MOVIES: ")
+            for movie in matched_movies:
+                print(movie)
+        else:
+            print("NO MOVIES FOUND")
+
+
+def logout_user():
+    global current_user
+    current_user = None
+    print("LOGOUT SUCCESSFUL!")
+
+     #return username, password
+#def calculate_file_hash(filename):
+#    BLOCK_SIZE = 65536
+#    file_hash = hashlib.sha256()
+#    
+#    with open(filename, 'rb') as file:
+#        fb = file.read(BLOCK_SIZE)
+#        while len(fb) > 0:
+#            file_hash.update(fb)
+#            fb = file.read(BLOCK_SIZE)
+    
+#    return file_hash.hexdigest()
+
+def main_menu():
+    print("#### WELCOME TO THE MOVIES RECOMMENDATION SYSTEM! ####")
+    while True:
+        
+        print("\n1. REGISTER")
+        print("2. LOGIN")
+        print("3. LOGOUT")
+        print("4. MOVIE SEARCH")
+        print("5. EXIT")    
+        choice = input("ENTER YOUR CHOICE: ")
+
+        if choice == "1":
+            username, hashed_password = register_user()
+            store_user_details(username, hashed_password)
+            print("Registration successful!")
+        elif choice == "2":
+            login_user()
+        elif choice == "3":
+            if current_user:
+                logout_user()
+            else:
+                print("NO USER IS CURRENTLY LOGGED IN")
+        elif choice == "4":
+            movie_search()
+        elif choice == "5":
+            print("THANK YOU FOR YOUR VISIT!")
+            break
+        else:
+            print("INVALID, TRY AGAIN")
+        #os.system('cls')
+# Call the main_menu() function to start the program
+main_menu()
