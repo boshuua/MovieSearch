@@ -1,6 +1,6 @@
 import hashlib
 import csv
-#import os
+import os
 
 
 
@@ -40,6 +40,9 @@ def login_user():
     print("INVALID, PLEASE TRY AGAIN")
     return False
 def movie_search():
+    if not current_user:
+        print("###### PLEASE LOGIN TO ACCESS THE WATCHLIST ######")
+        return
     with open('movies.csv', 'r') as file:
         reader = csv.DictReader(file)
         genres = set()
@@ -65,7 +68,44 @@ def movie_search():
         else:
             print("NO MOVIES FOUND")
 
+def watchlist():
+    if not current_user:
+        print("###### PLEASE LOGIN TO ACCESS THE WATCHLIST ######")
+        return
+    
+    user_watchlist = []
 
+    while True:
+        print("\n#### WATCHLIST MENU ####")
+        print("1. ADD MOVIE TO WATCHLIST")
+        print("2. REMOVE MOVIES FROM WATCHLIST")
+        print("3. VIEW WATCHLIST")
+        print("4. BACK TO MAIN MENU")
+
+        choice = input("ENTER YOUR CHOICE: ")
+
+        if choice == "1":
+            movie_title = input("ENTER MOVIE TITLE TO ADD: ")
+            user_watchlist.append(movie_title)
+            print(f"{movie_title} ADDED TO THE WATCHLIST.")
+        elif choice == "2":
+            movie_title = input("ENTER THE MOVIE TITLE TO REMOVE: ")
+            if movie_title in user_watchlist:
+                user_watchlist.remove(movie_title)
+                print(f"{movie_title} REMOVED FROM WATCHLIST")
+        elif choice == 3:
+            if user_watchlist:
+                print("MOVIES IN WATCHLIST: ")
+                for movie  in user_watchlist:
+                    print(user_watchlist)
+                else:
+                    print("WATCHLIST IS EMPTY.")
+        elif choice == "4":
+            print("RETURNING TO THE MAIN MENU.")
+            break
+        else:
+            print("INVALID, PLEASE TRY AGAIN")
+    os.system('cls')
 def logout_user():
     global current_user
     current_user = None
@@ -85,20 +125,21 @@ def logout_user():
 #    return file_hash.hexdigest()
 
 def main_menu():
-    print("#### WELCOME TO THE MOVIES RECOMMENDATION SYSTEM! ####")
+    print("#### WELCOME TO THE MOVIES WATCHLIST SYSTEM! ####")
     while True:
         
         print("\n1. REGISTER")
         print("2. LOGIN")
         print("3. LOGOUT")
         print("4. MOVIE SEARCH")
-        print("5. EXIT")    
+        print("5. WATCHLIST")
+        print("6. EXIT")    
         choice = input("ENTER YOUR CHOICE: ")
 
         if choice == "1":
             username, hashed_password = register_user()
             store_user_details(username, hashed_password)
-            print("Registration successful!")
+            print("REGISTRATION SUCCESSFUL!")
         elif choice == "2":
             login_user()
         elif choice == "3":
@@ -109,10 +150,12 @@ def main_menu():
         elif choice == "4":
             movie_search()
         elif choice == "5":
+            watchlist()
+        elif choice == "6":
             print("THANK YOU FOR YOUR VISIT!")
             break
         else:
             print("INVALID, TRY AGAIN")
         #os.system('cls')
-# Call the main_menu() function to start the program
+#main_menu() function to start the program
 main_menu()
