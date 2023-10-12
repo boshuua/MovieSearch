@@ -1,177 +1,230 @@
 import hashlib
 import csv
 import os
+import tkinter as tk
+from tkinter import messagebox
 
 # Global variables
 current_user = None
 
+# Create the main Tkinter window
+root = tk.Tk()
+root.title("Movies Watchlist System")
 
+
+# Function to display a message in a pop-up window
+def show_message(title, message):
+  messagebox.showinfo(title, message)
+
+
+# Function to register a user
 def register_user():
-    username = input("ENTER A USERNAME: ")
-    password = input("ENTER A PASSWORD: ")
-    hashed_password = hash_password(password)
-    return username, hashed_password
+  username = register_username_entry.get()
+  password = register_password_entry.get()
+  hashed_password = hash_password(password)
+  store_user_details(username, hashed_password)
+  show_message("Registration", "Registration successful!")
 
+
+# Function to store user details in 'users.txt'
 def store_user_details(username, hashed_password):
-    with open('users.txt', 'a') as file:
-        file.write(f"{username},{hashed_password}\n")
+  with open('users.txt', 'a') as file:
+    file.write(f"{username},{hashed_password}\n")
 
+
+# Function to hash a password using SHA-256
 def hash_password(password):
-    # Hash the password using SHA-256
-    hashed_password = hashlib.sha256(password.encode()).hexdigest()
-    return hashed_password
+  hashed_password = hashlib.sha256(password.encode()).hexdigest()
+  return hashed_password
 
+
+# Function to log in a user
 def login_user():
-    global current_user
-    username = input("ENTER USERNAME: ")
-    password = input("ENTER PASSWORD: ")
-    hashed_password = hash_password(password)
+  global current_user
+  username = login_username_entry.get()
+  password = login_password_entry.get()
+  hashed_password = hash_password(password)
 
-    with open('users.txt', 'r') as file:
-        for line in file:
-            stored_username, stored_password = line.strip().split(',')
-            if username == stored_username and hashed_password == stored_password:
-                current_user = username
-                print("LOGIN SUCCESSFUL!")
-                return True
-
-    print("INVALID, PLEASE TRY AGAIN")
-    return False
-
-def movie_search():
-    if not current_user:
-        print("###### PLEASE LOGIN TO ACCESS THE WATCHLIST ######")
-        return
-    previous_searches =[]
-    while True:
-        with open('movies.csv', 'r') as file:
-            reader = csv.DictReader(file)
-            genres = set()
-
-            for row in reader:
-                genres.add(row['Genre'])
-        
-        print("AVAILABLE GENRES:")
-        for genre in genres:
-            print(genre)
-        user_pref = input("ENTER YOUR MOVIE PREFERENCE: ")
-        
-        with open('movies.csv', 'r') as file:
-            reader = csv.DictReader(file)
-            matched_movies = []
-
-            for row in reader:
-                if user_pref.lower() == row['Genre'].lower():
-                    matched_movies.append(row['Title'])
-        
-        if matched_movies:
-            print("\nMATCHED MOVIES:")
-            for movie in matched_movies:
-                print(movie)
-        else:
-            print("NO MOVIES FOUND")
-        
-        choice = input("1. SEARCH AGAIN\n2. BACK TO MAIN MENU\nENTER YOUR CHOICE: ")
-        
-        if choice == "1":
-            continue
-        elif choice == "2":
-            break
-        else:
-            print("INVALID CHOICE, RETURNING TO MAIN MENU.")
-            break
-
-def watchlist():
-    if not current_user:
-        print("###### PLEASE LOGIN TO ACCESS THE WATCHLIST ######")
+  with open('users.txt', 'r') as file:
+    for line in file:
+      stored_username, stored_password = line.strip().split(',')
+      if username == stored_username and hashed_password == stored_password:
+        current_user = username
+        show_message("Login", "Login successful!")
         return
 
-    user_watchlist = []
-
-    while True:
-        print("\n#### WATCHLIST MENU ####")
-        print("1. ADD MOVIE TO WATCHLIST")
-        print("2. REMOVE MOVIES FROM WATCHLIST")
-        print("3. VIEW WATCHLIST")
-        print("4. SAVE WATCHLIST")
-        print("5. BACK TO MAIN MENU")
-
-        choice = input("ENTER YOUR CHOICE: ")
-
-        if choice == "1":
-            movie_title = input("ENTER MOVIE TITLE TO ADD: ")
-            user_watchlist.append(movie_title)
-            print(f"{movie_title} ADDED TO THE WATCHLIST.")
-        elif choice == "2":
-            movie_title = input("ENTER THE MOVIE TITLE TO REMOVE: ")
-            if movie_title in user_watchlist:
-                user_watchlist.remove(movie_title)
-                print(f"{movie_title} REMOVED FROM WATCHLIST")
-        elif choice == "3":
-            if user_watchlist:
-                print("MOVIES IN WATCHLIST:")
-                for movie in user_watchlist:
-                    print(movie)
-            else:
-                print("WATCHLIST IS EMPTY.")
-        elif choice == "4":
-            save_watchlist(user_watchlist)
-        elif choice == "5":
-            print("RETURNING TO THE MAIN MENU.")
-            break
-        else:
-            print("INVALID, PLEASE TRY AGAIN")
-
-def save_watchlist(watchlist):
-    if not watchlist:
-        print("NO MOVIES IN WATCHLIST TO SAVE.")
-        return
-
-    filename = f"{current_user}_watchlist.txt"
-
-    with open(filename, 'w') as file:
-        for movie in watchlist:
-            file.write(movie + '\n')
-
-    print("WATCHLIST SAVED SUCCESSFULLY!")
+  show_message("Login Error", "Invalid username or password")
 
 
+def open_movie_search():
+
+  def search_movies():
+    user_pref = movie_search_entry.get().strip().lower()
+    matched_movies = []
+
+    with open('movies.csv', 'r') as file:
+      reader = csv.DictReader(file)
+
+      for row in reader:
+        if user_pref in row['Title'].lower(
+        ) or user_pref in row['Genre'].lower():
+          matched_movies.append(row['Title'])
+
+    if matched_movies:
+      result_label.config(text="\nMATCHED MOVIES:")
+      for movie in matched_movies:
+        result_label.config(text=result_label.cget("text") + "\n" + movie)
+    else:
+      result_label.config(text="NO MOVIES FOUND")
+
+  movie_search_window = tk.Toplevel(root)
+  movie_search_window.title("Movie Search")
+
+  movie_search_label = tk.Label(movie_search_window,
+                                text="Enter a movie title or genre:")
+  movie_search_label.pack()
+
+  movie_search_entry = tk.Entry(movie_search_window)
+  movie_search_entry.pack()
+
+  search_button = tk.Button(movie_search_window,
+                            text="Search",
+                            command=search_movies)
+  search_button.pack()
+
+  result_label = tk.Label(movie_search_window, text="")
+  result_label.pack()
+
+  close_movie_search_button = tk.Button(movie_search_window,
+                                        text="Close",
+                                        command=movie_search_window.destroy)
+  close_movie_search_button.pack()
+
+
+# ...
+# Add the movie search functionality here
+# Function to open the movie search window
+def open_movie_search():
+
+  def search_movies():
+    user_pref = movie_search_entry.get().lower()
+    matched_movies = []
+
+    with open('movies.csv', 'r') as file:
+      reader = csv.DictReader(file)
+
+      for row in reader:
+        if user_pref in row['Genre'].lower():
+          matched_movies.append(row['Title'])
+
+    if matched_movies:
+      result_label.config(text="\nMATCHED MOVIES:")
+      for movie in matched_movies:
+        result_label.config(text=result_label.cget("text") + "\n" + movie)
+    else:
+      result_label.config(text="NO MOVIES FOUND")
+
+  movie_search_window = tk.Toplevel(root)
+  movie_search_window.title("Movie Search")
+
+  movie_search_label = tk.Label(movie_search_window,
+                                text="Enter your movie preference:")
+  movie_search_label.pack()
+
+  movie_search_entry = tk.Entry(movie_search_window)
+  movie_search_entry.pack()
+
+  search_button = tk.Button(movie_search_window,
+                            text="Search",
+                            command=search_movies)
+  search_button.pack()
+
+  result_label = tk.Label(movie_search_window, text="")
+  result_label.pack()
+
+  close_movie_search_button = tk.Button(movie_search_window,
+                                        text="Close",
+                                        command=movie_search_window.destroy)
+  close_movie_search_button.pack()
+
+  # ...
+
+  # Close the movie search window when done
+  close_movie_search_button = tk.Button(movie_search_window,
+                                        text="Close",
+                                        command=movie_search_window.destroy)
+  close_movie_search_button.pack()
+
+
+# Function to open the watchlist window
+def open_watchlist():
+  watchlist_window = tk.Toplevel(root)
+  watchlist_window.title("Watchlist")
+  watchlist_label = tk.Label(watchlist_window, text="Your watchlist:")
+  watchlist_label.pack()
+  # Add the watchlist functionality here
+  # ...
+  # Close the watchlist window when done
+  close_watchlist_button = tk.Button(watchlist_window,
+                                     text="Close",
+                                     command=watchlist_window.destroy)
+  close_watchlist_button.pack()
+
+
+# Function to log out
 def logout_user():
-    global current_user
-    current_user = None
-    print("LOGOUT SUCCESSFUL!")
+  global current_user
+  current_user = None
+  show_message("Logout", "Logout successful!")
 
-def main_menu():
-    print("#### WELCOME TO THE MOVIES WATCHLIST SYSTEM! ####")
-    while True:
-        print("\n1. REGISTER")
-        print("2. LOGIN")
-        print("3. LOGOUT")
-        print("4. MOVIE SEARCH")
-        print("5. WATCHLIST")
-        print("6. EXIT")
-        choice = input("ENTER YOUR CHOICE: ")
 
-        if choice == "1":
-            username, hashed_password = register_user()
-            store_user_details(username, hashed_password)
-            print("REGISTRATION SUCCESSFUL!")
-        elif choice == "2":
-            login_user()
-        elif choice == "3":
-            if current_user:
-                logout_user()
-            else:
-                print("NO USER IS CURRENTLY LOGGED IN")
-        elif choice == "4":
-            movie_search()
-        elif choice == "5":
-            watchlist()
-        elif choice == "6":
-            print("THANK YOU FOR YOUR VISIT!")
-            break
-        else:
-            print("INVALID, TRY AGAIN")
+# Create and set up the registration frame
+registration_frame = tk.Frame(root)
+registration_frame.pack()
+register_label = tk.Label(registration_frame, text="Register a new user")
+register_label.pack()
+register_username_label = tk.Label(registration_frame, text="Username:")
+register_username_label.pack()
+register_username_entry = tk.Entry(registration_frame)
+register_username_entry.pack()
+register_password_label = tk.Label(registration_frame, text="Password:")
+register_password_label.pack()
+register_password_entry = tk.Entry(registration_frame, show="*")
+register_password_entry.pack()
+register_button = tk.Button(registration_frame,
+                            text="Register",
+                            command=register_user)
+register_button.pack()
 
-# Call the main_menu() function to start the program
-main_menu()
+# Create and set up the login frame
+login_frame = tk.Frame(root)
+login_frame.pack()
+login_label = tk.Label(login_frame, text="Log in")
+login_label.pack()
+login_username_label = tk.Label(login_frame, text="Username:")
+login_username_label.pack()
+login_username_entry = tk.Entry(login_frame)
+login_username_entry.pack()
+login_password_label = tk.Label(login_frame, text="Password:")
+login_password_label.pack()
+login_password_entry = tk.Entry(login_frame, show="*")
+login_password_entry.pack()
+login_button = tk.Button(login_frame, text="Login", command=login_user)
+login_button.pack()
+
+# Create and set up the main menu
+menu_label = tk.Label(root, text="Main Menu")
+menu_label.pack()
+movie_search_button = tk.Button(root,
+                                text="Movie Search",
+                                command=open_movie_search)
+movie_search_button.pack()
+watchlist_button = tk.Button(root, text="Watchlist", command=open_watchlist)
+watchlist_button.pack()
+logout_button = tk.Button(root, text="Logout", command=logout_user)
+logout_button.pack()
+exit_button = tk.Button(root, text="Exit", command=root.destroy)
+exit_button.pack()
+
+# Start the main Tkinter event loop
+root.mainloop()
