@@ -7,7 +7,7 @@ A Python project to help you keep track of movies you want to watch and have wat
 ---------------
 To install the project, simply clone the repository and install the required packages using pip:
 
-`***git clone https://github.com/boshuua/MovieWatchlist.git***`
+`git clone https://github.com/boshuua/MovieWatchlist.git`
 
 **Configuration**
 ---------------
