@@ -9,12 +9,6 @@ To install the project, simply clone the repository and install the required pac
 
 `git clone https://github.com/boshuua/MovieWatchlist.git`
 
-**Configuration**
----------------
-
-You can configure the project by editing the `config.json` file. This file contains the following settings:
-
-* `database_file`: The file path where the watchlist data is stored.
 
 **Troubleshooting**
 ---------------
